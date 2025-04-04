@@ -6,6 +6,7 @@ To run the server:
 1. ```cd server```
 2. ```npm i```
 3. add .env at the root
+4. ```npm run dev```
 
 .env should be like this
 ```
