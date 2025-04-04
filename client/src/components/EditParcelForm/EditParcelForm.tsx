@@ -19,7 +19,11 @@ const getId = (search: string) => {
   return (new URLSearchParams(search)).get("id");
 };
 
-const EditParcelForm: React.FC<{ onCloseEditing: () => void; }> = ({ onCloseEditing }) => {
+const EditParcelForm: React.FC<{ onCloseEditing: () => void; isEditing: boolean; }> = (
+  {
+    onCloseEditing,
+    isEditing,
+  }) => {
   const dispatch = useAppDispatch();
   const { register, handleSubmit, reset, setValue } = useForm<EditParcelFormInputs>();
   const singleParcel = useAppSelector(state => state.parcels.singleParcel);
@@ -66,6 +70,8 @@ const EditParcelForm: React.FC<{ onCloseEditing: () => void; }> = ({ onCloseEdit
     reset();
     onCloseEditing();
   };
+
+  if (!isEditing) return null;
 
   return (
     <CustomModal onClose={onCloseEditing} title={"Edit form"}>
