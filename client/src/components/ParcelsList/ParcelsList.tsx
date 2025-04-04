@@ -4,16 +4,18 @@ import { Button, ListGroup } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { deleteParcel, fetchParcels } from "../../store/parcels/parcelsThunks";
 import { toast } from "react-toastify";
-import EditParcelForm from "../EditParcelForm/EditParcelForm.tsx";
 import { setSingleParcel } from "../../store/parcels/parcelsSlice.ts";
 import { RouterEnum } from "../../constants/enums/routerEnum.ts";
 import { formatDateForUser } from "../../helpers/formatDate.ts";
 import NotificationCard from "../NotificationCard/NotificationCard.tsx";
+import EditParcelForm from "../EditParcelForm/EditParcelForm.tsx";
+import { useNavigate } from "react-router";
 
 const ParcelsList: React.FC = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const parcels = useAppSelector(state => state.parcels.parcels);
+  const navigate = useNavigate();
 
   const handleDelete = (parcelId: string) => {
     dispatch(deleteParcel(parcelId));
@@ -33,6 +35,11 @@ const ParcelsList: React.FC = () => {
     getAllParcels();
   }, []);
 
+  const addToHistoryWithEdit = (parcel: IParcel) => () => {
+    navigate(`/${RouterEnum.PARCELS_MANAGEMENT}?id=${parcel.id}`, { replace: false });
+    handleEdit(parcel);
+  };
+
   const renderedParcels = parcels.map((parcel: IParcel) => (
     <ListGroup.Item key={parcel.id} style={{ marginBottom: "10px" }}>
       <div className="d-flex justify-content-between align-items-center">
@@ -43,10 +50,7 @@ const ParcelsList: React.FC = () => {
             <p>Request Creation Time: {formatDateForUser(parcel.requestCreationTime.toString())}</p>}
         </div>
         <div>
-          <Button variant="warning" onClick={() => {
-            history.pushState({ id: parcel.id }, "", `/${RouterEnum.PARCELS_MANAGEMENT}?id=${parcel.id}`);
-            handleEdit(parcel);
-          }} className="me-2">
+          <Button variant="warning" onClick={addToHistoryWithEdit(parcel)} className="me-2">
             Edit
           </Button>
           <Button variant="danger" onClick={() => handleDelete(parcel.id)}>

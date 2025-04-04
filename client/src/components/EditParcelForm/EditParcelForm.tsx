@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../store";
 import { fetchParcels, fetchSingleParcel, updateParcel } from "../../store/parcels/parcelsThunks.ts";
 import CustomModal from "../shared/CustomModal/CustomModal.tsx";
 import { formatForBootstrapDate } from "../../helpers/formatDate.ts";
-import { useQuery } from "../../hooks/useQuery.tsx";
+import { useLocation } from "react-router";
 
 interface EditParcelFormInputs {
   senderCity: string;
@@ -15,27 +15,31 @@ interface EditParcelFormInputs {
   description: string;
 }
 
+const getId = (search: string) => {
+  return (new URLSearchParams(search)).get("id");
+};
+
 const EditParcelForm: React.FC<{ onCloseEditing: () => void; }> = ({ onCloseEditing }) => {
   const dispatch = useAppDispatch();
   const { register, handleSubmit, reset, setValue } = useForm<EditParcelFormInputs>();
   const singleParcel = useAppSelector(state => state.parcels.singleParcel);
 
-  const query = useQuery();
+  const { search } = useLocation();
   const prevParcelId = useRef<string | null>(null);
 
   useEffect(() => {
     const handleFetchParcelAndSetDefaultFields = async () => {
-      const id = query.get("id");
+      const id = getId(search);
       if (id && id !== prevParcelId.current) {
         prevParcelId.current = id;
         await dispatch(fetchSingleParcel(id)).unwrap();
-        if (singleParcel) {
-          setValue("senderCity", singleParcel.senderCity);
-          setValue("receiverCity", singleParcel.receiverCity);
-          setValue("parcelType", singleParcel.parcelType);
-          setValue("dispatchDate", formatForBootstrapDate(singleParcel.dispatchDate.toString()));
-          setValue("description", singleParcel.description);
-        }
+      }
+      if (singleParcel) {
+        setValue("senderCity", singleParcel.senderCity);
+        setValue("receiverCity", singleParcel.receiverCity);
+        setValue("parcelType", singleParcel.parcelType);
+        setValue("dispatchDate", formatForBootstrapDate(singleParcel.dispatchDate.toString()));
+        setValue("description", singleParcel.description);
       }
     };
     handleFetchParcelAndSetDefaultFields();
@@ -43,9 +47,11 @@ const EditParcelForm: React.FC<{ onCloseEditing: () => void; }> = ({ onCloseEdit
 
   const onSubmit = async (data: EditParcelFormInputs) => {
     const parsedDispatchDate = new Date(data.dispatchDate);
-    const id = query.get("id");
+    const id = getId(search);
 
-    if (!id) return;
+    if (!id) {
+      return;
+    }
 
     await dispatch(updateParcel({
       parcelId: id,
