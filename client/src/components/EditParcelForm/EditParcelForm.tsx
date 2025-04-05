@@ -6,6 +6,7 @@ import { fetchParcels, fetchSingleParcel, updateParcel } from "../../store/parce
 import CustomModal from "../shared/CustomModal/CustomModal.tsx";
 import { formatForBootstrapDate } from "../../helpers/formatDate.ts";
 import { useLocation } from "react-router";
+import { toast } from "react-toastify";
 
 interface EditParcelFormInputs {
   senderCity: string;
@@ -29,25 +30,27 @@ const EditParcelForm: React.FC<{ onCloseEditing: () => void; isEditing: boolean;
   const singleParcel = useAppSelector(state => state.parcels.singleParcel);
 
   const { search } = useLocation();
+  const id = getId(search);
   const prevParcelId = useRef<string | null>(null);
 
   useEffect(() => {
     const handleFetchParcelAndSetDefaultFields = async () => {
-      const id = getId(search);
       if (id && id !== prevParcelId.current) {
         prevParcelId.current = id;
-        await dispatch(fetchSingleParcel(id)).unwrap();
-      }
-      if (singleParcel) {
-        setValue("senderCity", singleParcel.senderCity);
-        setValue("receiverCity", singleParcel.receiverCity);
-        setValue("parcelType", singleParcel.parcelType);
-        setValue("dispatchDate", formatForBootstrapDate(singleParcel.dispatchDate.toString()));
-        setValue("description", singleParcel.description);
+        const parcel = await dispatch(fetchSingleParcel(id)).unwrap();
+        if (parcel) {
+          setValue("senderCity", parcel.senderCity);
+          setValue("receiverCity", parcel.receiverCity);
+          setValue("parcelType", parcel.parcelType);
+          if (parcel.dispatchDate) {
+            setValue("dispatchDate", formatForBootstrapDate(parcel.dispatchDate.toString()));
+          }
+          setValue("description", parcel.description);
+        }
       }
     };
     handleFetchParcelAndSetDefaultFields();
-  }, [singleParcel]);
+  }, [singleParcel, id]);
 
   const onSubmit = async (data: EditParcelFormInputs) => {
     const parsedDispatchDate = new Date(data.dispatchDate);
@@ -66,6 +69,7 @@ const EditParcelForm: React.FC<{ onCloseEditing: () => void; isEditing: boolean;
         dispatchDate: parsedDispatchDate,
       },
     })).unwrap();
+    toast("Finished editing!", { position: "bottom-right" });
     dispatch(fetchParcels());
     reset();
     onCloseEditing();

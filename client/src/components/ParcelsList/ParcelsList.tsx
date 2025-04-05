@@ -19,8 +19,8 @@ const ParcelsList: React.FC = () => {
   const navigate = useNavigate();
   const [currentParcelId, setCurrentParcelId] = useState<string | null>(null);
 
-  const handleDelete = (parcelId: string) => {
-    dispatch(deleteParcel(parcelId));
+  const handleDelete = async (parcelId: string) => {
+    await dispatch(deleteParcel(parcelId));
     toast("Parcel deleted!", { position: "bottom-right" });
     dispatch(fetchParcels());
   };
@@ -57,9 +57,9 @@ const ParcelsList: React.FC = () => {
           <p className="mb-1">
             <strong>Description:</strong> {parcel.description}
           </p>
-          <p className="mb-1">
+          {parcel.dispatchDate && <p className="mb-1">
             <strong>Date of Dispatch:</strong> {formatDateForUser(parcel.dispatchDate.toString())}
-          </p>
+          </p>}
           {parcel.requestCreationTime && (
             <p className="text-muted small">
               <strong>Created:</strong> {formatDateForUser(parcel.requestCreationTime.toString())}
